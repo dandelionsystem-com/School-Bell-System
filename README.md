@@ -8,7 +8,7 @@ A Windows desktop program that plays your school bell sounds automatically, at t
 
 ## Screenshot
 
-![School Bell System](screenshot.png)
+![School Bell System]([screenshot.png](https://raw.githubusercontent.com/dandelionsystem-com/School-Bell-System/refs/heads/main/wiki/main.png))
 
 ---
 
@@ -35,7 +35,7 @@ The program checks the time every second and plays the correct sound automatical
 
 ## Download
 
-Go to the [Releases](../../releases) page and download the latest installer.
+Go to the [Release](https://github.com/dandelionsystem-com/School-Bell-System/releases) page and download the latest installer.
 
 > **Note for Windows users:** Because this program is not code-signed, Windows SmartScreen may show a warning the first time you run it. Click **More info → Run anyway** to proceed. The program is clean — you can verify the release on this page.
 
