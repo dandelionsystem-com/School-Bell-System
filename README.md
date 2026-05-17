@@ -8,7 +8,7 @@ A Windows desktop program that plays your school bell sounds automatically, at t
 
 ## Screenshot
 
-![School Bell System]([screenshot.png](https://raw.githubusercontent.com/dandelionsystem-com/School-Bell-System/refs/heads/main/wiki/main.png))
+![School Bell System](https://raw.githubusercontent.com/dandelionsystem-com/School-Bell-System/refs/heads/main/wiki/main.png)
 
 ---
 
@@ -47,5 +47,6 @@ Freeware. Free to use for any school or organisation. Redistribution without mod
 
 ---
 
-*Provided by [Dandelion System](https://dandelionsystem.com) — Tawau, Sabah, Malaysia.*
+*Provided by [Dandelion System](https://dandelionsystem.com)*
+*Tawau, Sabah, Malaysia*
 *Software developer for businesses and organisations of all sizes, serving clients worldwide.*
