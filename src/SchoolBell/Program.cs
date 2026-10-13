@@ -7,8 +7,8 @@ namespace SchoolBell
 {
     static class Program
     {
-        public const string version = "2.01";
-        public const string versiondate = "2 (15/05/2026)";
+        public const string version = "2.1";
+        public const string versiondate = "2.1 (13/10/2026)";
         /// <summary>
         /// The main entry point for the application.
         /// </summary>

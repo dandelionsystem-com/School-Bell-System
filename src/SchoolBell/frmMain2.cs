@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -41,6 +41,7 @@ namespace SchoolBell
 
         Button[] dayButtons;
         bool suppressGridEvents = false;
+        bool dirty = false;
 
         public frmMain2()
         {
@@ -89,6 +90,8 @@ namespace SchoolBell
             }
             UpdateFileStatus();
 
+            InitializeModernUI();
+
             int todayIdx = DayOfWeekToIndex(DateTime.Now.DayOfWeek);
             SelectDay(todayIdx);
 
@@ -98,6 +101,50 @@ namespace SchoolBell
             clockTimer.Start();
 
             ScheduleNextBell();
+        }
+
+        void InitializeModernUI()
+        {
+            this.BackColor = Color.White;
+
+            // Configure modern DataGridView
+            dgv.BackgroundColor = Color.White;
+            dgv.BorderStyle = BorderStyle.None;
+            dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgv.GridColor = Color.FromArgb(240, 240, 240);
+            dgv.EnableHeadersVisualStyles = false;
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(243, 244, 246);
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(31, 41, 55);
+            dgv.ColumnHeadersDefaultCellStyle.Font = new Font(this.Font, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(6, 4, 6, 4);
+            dgv.ColumnHeadersHeight = 36;
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
+            dgv.DefaultCellStyle.BackColor = Color.White;
+            dgv.DefaultCellStyle.ForeColor = Color.FromArgb(17, 24, 39);
+            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(238, 242, 255);
+            dgv.DefaultCellStyle.SelectionForeColor = Color.FromArgb(30, 64, 175);
+            dgv.DefaultCellStyle.Padding = new Padding(4, 2, 4, 2);
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(250, 250, 252);
+            dgv.RowTemplate.Height = 34;
+
+            // Day buttons flat styling
+            for (int i = 1; i <= 7; i++)
+            {
+                if (dayButtons[i] == null) continue;
+                dayButtons[i].FlatStyle = FlatStyle.Flat;
+                dayButtons[i].FlatAppearance.BorderSize = 1;
+                dayButtons[i].Cursor = Cursors.Hand;
+            }
+
+            // Action buttons flat styling
+            btAdd.FlatStyle = FlatStyle.Flat;
+            btAdd.FlatAppearance.BorderColor = Color.FromArgb(209, 213, 219);
+            btAdd.Cursor = Cursors.Hand;
+
+            btSave.FlatStyle = FlatStyle.Flat;
+            btSave.FlatAppearance.BorderColor = Color.FromArgb(29, 78, 216);
+            btSave.Cursor = Cursors.Hand;
         }
 
         int DayOfWeekToIndex(DayOfWeek dow)
@@ -119,12 +166,22 @@ namespace SchoolBell
             currentDay = dayIdx;
             for (int i = 1; i <= 7; i++)
             {
-                dayButtons[i].UseVisualStyleBackColor = true;
-                dayButtons[i].BackColor = SystemColors.Control;
-                dayButtons[i].Font = new Font(this.Font, FontStyle.Regular);
+                if (dayButtons[i] == null) continue;
+                if (i == dayIdx)
+                {
+                    dayButtons[i].BackColor = Color.FromArgb(37, 99, 235);
+                    dayButtons[i].ForeColor = Color.White;
+                    dayButtons[i].FlatAppearance.BorderColor = Color.FromArgb(29, 78, 216);
+                    dayButtons[i].Font = new Font(this.Font, FontStyle.Bold);
+                }
+                else
+                {
+                    dayButtons[i].BackColor = Color.White;
+                    dayButtons[i].ForeColor = Color.FromArgb(55, 65, 81);
+                    dayButtons[i].FlatAppearance.BorderColor = Color.FromArgb(229, 231, 235);
+                    dayButtons[i].Font = new Font(this.Font, FontStyle.Regular);
+                }
             }
-            dayButtons[dayIdx].BackColor = Color.FromArgb(180, 220, 255);
-            dayButtons[dayIdx].Font = new Font(this.Font, FontStyle.Bold);
 
             lbCurrentDay.Text = "Current Day: " + dayNames[dayIdx];
 
@@ -170,25 +227,49 @@ namespace SchoolBell
         {
             var d = days[currentDay];
             if (d.type != "custom") return;
-            d.slots.Clear();
+
+            var newSlots = new List<Slot>();
             foreach (DataGridViewRow row in dgv.Rows)
             {
                 string timeStr = (row.Cells[colTime.Index].Value + "").Trim();
                 int h, m;
                 if (!ParseTime(timeStr, out h, out m)) { h = 0; m = 0; }
                 string file = (row.Cells[colSoundFile.Index].Value + "").Trim();
-                d.slots.Add(new Slot { hour = h, minute = m, soundfile = file });
+                newSlots.Add(new Slot { hour = h, minute = m, soundfile = file });
+            }
+
+            // Check if anything actually changed
+            bool changed = d.slots.Count != newSlots.Count;
+            if (!changed)
+            {
+                for (int i = 0; i < d.slots.Count; i++)
+                {
+                    if (d.slots[i].hour != newSlots[i].hour ||
+                        d.slots[i].minute != newSlots[i].minute ||
+                        !string.Equals(d.slots[i].soundfile, newSlots[i].soundfile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            d.slots = newSlots;
+            if (changed)
+            {
+                SetDirty(true);
             }
             ScheduleNextBell();
         }
 
         DaySettings ResolveDay(int dayIdx)
         {
-            var visited = new HashSet<int>();
+            var visited = new Dictionary<int, bool>();
             int cur = dayIdx;
             while (true)
             {
-                if (!visited.Add(cur)) return new DaySettings();
+                if (visited.ContainsKey(cur)) return new DaySettings();
+                visited[cur] = true;
                 var d = days[cur];
                 if (d.type == "custom") return d;
                 int t;
@@ -204,7 +285,7 @@ namespace SchoolBell
         bool ParseTime(string s, out int hour, out int minute)
         {
             hour = 0; minute = 0;
-            if (string.IsNullOrWhiteSpace(s)) return false;
+            if (s == null || s.Trim().Length == 0) return false;
             string[] p = s.Split(':');
             if (p.Length != 2) return false;
             if (!int.TryParse(p[0], out hour)) return false;
@@ -254,22 +335,34 @@ namespace SchoolBell
                 DateTime probeDate = now.Date.AddDays(offset);
                 int dIdx = DayOfWeekToIndex(probeDate.DayOfWeek);
                 var src = ResolveDay(dIdx);
+
+                // rows are kept in the order the user entered them, so look for
+                // the earliest upcoming slot rather than the first one in the list
+                int best = -1;
+                DateTime bestTime = DateTime.MaxValue;
                 for (int i = 0; i < src.slots.Count; i++)
                 {
                     var s = src.slots[i];
+                    if (string.IsNullOrEmpty(s.soundfile)) continue;
                     DateTime t = probeDate.AddHours(s.hour).AddMinutes(s.minute);
-                    if (t > now)
+                    if (t > now && t < bestTime)
                     {
-                        double ms = (t - now).TotalMilliseconds;
-                        if (ms < 100) ms = 100;
-                        if (ms > int.MaxValue) ms = int.MaxValue;
-                        bellTimer.Interval = (int)ms;
-                        targetDay = dIdx;
-                        targetSlotIndex = i;
-                        bellTimer.Start();
-                        lbNextBell.Text = "Next bell: " + dayNames[dIdx] + " " + t.ToString("HH:mm");
-                        return;
+                        best = i;
+                        bestTime = t;
                     }
+                }
+
+                if (best >= 0)
+                {
+                    double ms = (bestTime - now).TotalMilliseconds;
+                    if (ms < 100) ms = 100;
+                    if (ms > int.MaxValue) ms = int.MaxValue;
+                    bellTimer.Interval = (int)ms;
+                    targetDay = dIdx;
+                    targetSlotIndex = best;
+                    bellTimer.Start();
+                    lbNextBell.Text = "Next bell: " + dayNames[dIdx] + " " + bestTime.ToString("HH:mm");
+                    return;
                 }
             }
             lbNextBell.Text = "Next bell: (none scheduled)";
@@ -348,6 +441,7 @@ namespace SchoolBell
                 days = fresh;
                 SelectDay(currentDay);
                 ScheduleNextBell();
+                SetDirty(false);
                 if (!silent) MessageBox.Show("Settings loaded.");
             }
             catch (Exception ex)
@@ -378,6 +472,7 @@ namespace SchoolBell
             btAdd.Enabled = custom;
             dgv.ReadOnly = !custom;
             RenderGridFromModel();
+            SetDirty(true);
             ScheduleNextBell();
         }
 
@@ -386,6 +481,46 @@ namespace SchoolBell
             if (days[currentDay].type != "custom") return;
             days[currentDay].slots.Add(new Slot { hour = 0, minute = 0, soundfile = "" });
             RenderGridFromModel();
+            SetDirty(true);
+        }
+
+        void SetDirty(bool value)
+        {
+            dirty = value;
+            this.Text = "School Bell System - Weekly Scheduler - V" + Program.version + (dirty ? " *" : "");
+            btSave.Text = dirty ? "💾 Save Changes *" : "Save";
+            btSave.BackColor = dirty ? Color.FromArgb(220, 38, 38) : Color.FromArgb(37, 99, 235);
+            btSave.FlatAppearance.BorderColor = dirty ? Color.FromArgb(185, 28, 28) : Color.FromArgb(29, 78, 216);
+        }
+
+        // Saves to the currently loaded file (and settings.txt) without asking.
+        bool SaveCurrent()
+        {
+            dgv.EndEdit();
+            string text = BuildSettingsText();
+            try
+            {
+                File.WriteAllText(settingsFile, text);
+                if (!string.IsNullOrEmpty(currentSettingsPath) &&
+                    !string.Equals(Path.GetFullPath(currentSettingsPath), Path.GetFullPath(settingsFile), StringComparison.OrdinalIgnoreCase))
+                    File.WriteAllText(currentSettingsPath, text);
+                else
+                    currentSettingsPath = settingsFile;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Cannot save settings:\r\n" + ex.Message);
+                return false;
+            }
+            UpdateFileStatus();
+            SetDirty(false);
+            lbStatus.Text = "Settings saved " + DateTime.Now.ToString("HH:mm:ss");
+            return true;
+        }
+
+        private void btSave_Click(object sender, EventArgs e)
+        {
+            SaveCurrent();
         }
 
         private void dgv_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -449,7 +584,11 @@ namespace SchoolBell
 
         private void dgv_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (!suppressGridEvents) CommitGridToModel();
+            // Only time column is directly editable in the grid cells
+            if (!suppressGridEvents && e.ColumnIndex == colTime.Index)
+            {
+                CommitGridToModel();
+            }
         }
 
         private void miLoad_Click(object sender, EventArgs e)
@@ -470,6 +609,7 @@ namespace SchoolBell
         {
             try { File.WriteAllText(settingsFile, BuildSettingsText()); }
             catch (Exception ex) { MessageBox.Show("Cannot save settings.txt:\r\n" + ex.Message); return; }
+            SetDirty(false);
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
@@ -511,6 +651,18 @@ namespace SchoolBell
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            dgv.EndEdit();
+            if (dirty)
+            {
+                DialogResult r = MessageBox.Show(
+                    "You have unsaved changes. Save them before closing?",
+                    "School Bell System", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (r == DialogResult.Cancel || (r == DialogResult.Yes && !SaveCurrent()))
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
             try { player.controls.stop(); } catch { }
             base.OnFormClosing(e);
         }

@@ -31,6 +31,7 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.lbVersion = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -48,23 +49,33 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(19, 87);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(242, 171);
+            this.label1.Size = new System.Drawing.Size(154, 75);
             this.label1.TabIndex = 1;
-            this.label1.Text = "www.dandelionsystem.com\r\n\r\n学校铃声系统 School Class Bell System\r\nVersion \r\n\r\nContact:\r" +
-    "\nAdrian Voo\r\nTel: +6019-8532679\r\nEmail: adrian@dandelionsystem.com";
+            this.label1.Text = "www.dandelionsystem.com\r\n\r\nSchool Class Bell System\r\n\r\nVersion ";
             // 
             // lbVersion
             // 
             this.lbVersion.AutoSize = true;
-            this.lbVersion.Location = new System.Drawing.Point(73, 144);
+            this.lbVersion.Location = new System.Drawing.Point(73, 147);
             this.lbVersion.Name = "lbVersion";
-            this.lbVersion.Size = new System.Drawing.Size(66, 19);
+            this.lbVersion.Size = new System.Drawing.Size(55, 15);
             this.lbVersion.TabIndex = 3;
             this.lbVersion.Text = "lbVersion";
             // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(22, 184);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(399, 47);
+            this.textBox1.TabIndex = 4;
+            this.textBox1.Text = "https://dandelionsystem.com/SchoolBell\r\nhttps://github.com/dandelionsystem-com/Sc" +
+    "hool-Bell-System/releases";
+            // 
             // frmAbout
             // 
-            this.ClientSize = new System.Drawing.Size(320, 280);
+            this.ClientSize = new System.Drawing.Size(432, 246);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.lbVersion);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pictureBox1);
@@ -72,7 +83,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "frmAbout";
-            this.Text = "关于 About";
+            this.Text = "About";
             this.TopMost = true;
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
@@ -85,5 +96,6 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lbVersion;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }
