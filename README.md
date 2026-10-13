@@ -4,6 +4,7 @@
 
 A Windows desktop program that plays your school bell sounds automatically, at the exact times you schedule. Set it up once and leave it running, it handles the rest.
 
+Supports Windows XP, 7, 10, 11.
 ---
 
 ## Screenshot
