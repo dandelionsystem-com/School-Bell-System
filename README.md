@@ -45,7 +45,7 @@ Go to the [Release](https://github.com/dandelionsystem-com/School-Bell-System/re
 
 ## License
 
-Freeware. Free to use for any school or organisation. Redistribution without modification is permitted.
+Freeware. Free to use for any school or organisation. [Read more](https://github.com/dandelionsystem-com/School-Bell-System/blob/main/LICENSE)
 
 ---
 
